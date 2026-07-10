@@ -29,3 +29,19 @@ jobs:
       - name: Result-connect-false
         if: ${{ failure() }}
         run: echo "False"
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Prepare compose file
+        run: cp docker-compose.yml docker-compose.yml.new
+
+      - name: Upload docker-compose.yml to VM
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_PORT || 22 }}
+          source: "docker-compose.yml.new"
+          target: ${{ secrets.VM_DEPLOY_PATH }}
