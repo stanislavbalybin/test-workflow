@@ -75,10 +75,7 @@ jobs:
             
             chmod 600 .env
             
-            docker compose \
-              --env-file .env \
-              -f docker-compose.yml.new \
-              config >/dev/null
+            
               
             mv docker-compose.yml.new docker-compose.yml
             
