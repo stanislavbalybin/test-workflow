@@ -1,1 +1,10 @@
-123
+services:
+  gtop_reporting_dq:
+    container_name: gtop_reporting_dq
+    image: ${REGISTRY_URL:-local}/gtop-reporting:${IMAGE_TAG:-latest}
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
