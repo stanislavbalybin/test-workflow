@@ -45,3 +45,44 @@ jobs:
           port: ${{ secrets.VM_PORT || 22 }}
           source: "docker-compose.yml.new"
           target: ${{ secrets.VM_DEPLOY_PATH }}
+
+      - name: Deploy to VM over SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+          GTOP_PASSWORD: ${{ secrets.GTOP_PASSWORD }}
+          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+          IMAGE_TAG: ${{ github.sha }}
+          VM_DEPLOY_PATH: ${{ secrets.VM_DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: ${{ secrets.VM_PORT || 22 }}
+          envs: REGISTRY_URL,REGISTRY_USERNAME,REGISTRY_PASSWORD,GTOP_PASSWORD,SENDER_PASSWORD,IMAGE_TAG,VM_DEPLOY_PATH
+          script: |
+            set -e
+            
+            cd "$VM_DEPLOY_PATH"
+            cat > .env <<ENVEOF
+            GTOP_PASSWORD=$GTOP_PASSWORD
+            SENDER_PASSWORD=$SENDER_PASSWORD
+            REGISTRY_URL=$REGISTRY_URL
+            IMAGE_TAG=$IMAGE_TAG
+            ENVEOF
+            
+            chmod 600 .env
+            
+            docker compose \
+              --env-file .env \
+              -f docker-compose.yml.new \
+              config >/dev/null
+              
+            mv docker-compose.yml.new docker-compose.yml
+            
+            echo "$REGISTRY_PASSWORD" |
+              docker login "$REGISTRY_URL" \
+              -u "$REGISTRY_USERNAME" \
+              --password-stdin
