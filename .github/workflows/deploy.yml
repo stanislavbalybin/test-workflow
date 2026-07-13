@@ -20,7 +20,7 @@ jobs:
       - name: Connect-to-docker-hub
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.REGISTRY_URL }}
+          registry: ${{ vars.REGISTRY_URL }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: Result-connect-success
@@ -39,28 +39,28 @@ jobs:
       - name: Upload docker-compose.yml to VM
         uses: appleboy/scp-action@v1
         with:
-          host: ${{ secrets.VM_HOST }}
+          host: ${{ vars.VM_HOST }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
-          port: ${{ secrets.VM_PORT || 22 }}
+          port: ${{ vars.VM_PORT || 22 }}
           source: "docker-compose.yml.new"
-          target: ${{ secrets.VM_DEPLOY_PATH }}
+          target: ${{ vars.VM_DEPLOY_PATH }}
 
       - name: Deploy to VM over SSH
         uses: appleboy/ssh-action@v1
         env:
-          REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
+          REGISTRY_URL: ${{ vars.REGISTRY_URL }}
           REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
           GTOP_PASSWORD: ${{ secrets.GTOP_PASSWORD }}
           SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
           IMAGE_TAG: ${{ github.sha }}
-          VM_DEPLOY_PATH: ${{ secrets.VM_DEPLOY_PATH }}
+          VM_DEPLOY_PATH: ${{ vars.VM_DEPLOY_PATH }}
         with:
-          host: ${{ secrets.VM_HOST }}
+          host: ${{ vars.VM_HOST }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
-          port: ${{ secrets.VM_PORT || 22 }}
+          port: ${{ vars.VM_PORT || 22 }}
           envs: REGISTRY_URL,REGISTRY_USERNAME,REGISTRY_PASSWORD,GTOP_PASSWORD,SENDER_PASSWORD,IMAGE_TAG,VM_DEPLOY_PATH
           script: |
             set -e
